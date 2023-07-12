@@ -1,71 +1,45 @@
 # Chapter 1 - Overview
+视觉里程计和视觉算法，目标是了解如何使用视觉算法仅根据其图像估计相机的位置和运动，可以用于机器人、汽车和无人机，以实现自主运动。
 
-This is the first of a whole series of articles about Visual Odometry and Visual Algorithms. The goal of these series
-is to give deeper insights into how visual algorithms can be used to estimate the cameras position and movement from 
-its images only. Such algorithms can then be used in robots, cars and drones to enable autonomous movement.
+使用其他传感器类型的方法包括车轮里程计、GPS和Inertial measurement units(IMU)。
 
-So what is Visual Odometry all about? In simple words Visual Odometry estimates the position and orientation of the 
-camera in a iterative manner just by analyzing the images. From the change on the estimated poses the motion can be 
-derived. In contrast to most other approaches which are based on some sensors data or other mechanical data the 
-visual approach is not affected as much by uncertainties. For Wheel odometry it is a huge problem when the wheels 
-are slipping or for gps obstruction landscape of buildings are a problem. Inertial measurement units (IMU) are prone 
-to shift when small discrepancies are introduce they hardly are able to recover.
+对图像的要求：
+* 特征目标静止
+* 一定的光照条件
+* 连续的图像帧
 
-However also Visual Odometry can not always be applied and some assumptions have to be met enabling reasonable results.
-First of all since VO is based on image input, a sufficient illumination is needed so that representative images can be 
-produced. Next up for deriving the motion of a vehicle a large portion of the image should originate from a static 
-scenery. The motion is constructed by looking at the difference of subsequent images, therefore the images should 
-contain enough texture so that the object on the images can be match to each other. Obviously there have to be a 
-certain overlap in consecutive frames so the the relation between then is not lost.
 
-## History of Visual Odometry
+## 相关的视觉算法
 
-The field of VO originates from research of the NASA. The first known application of VO was made by Hans Moraveck 
-in 1980 who used a sliding stereo camera in his PhD thesis which was part of the development of the mars rovers. 
-Up to 2000 most VO research originated from NASA in preparation of the Mars missions. In 2004 David Nister wrote a 
-paper called "Visual Odometry" which popularize the term.
+下面罗列了一些视觉算法，可以解决不同方面的问题，注意理解这些算法的区别、各自的目标和它们之间的联系。
 
-## Some terminology
+参考资料：
 
-There are different versions of visual algorithms which tackles different aspects of the overall problems. It is 
-important to understand the difference of these algorithms and what the goal of them is. Here some of the are explained 
-and are put into relation. 
+https://www.xjx100.cn/news/396111.html?action=onClick （SFM、VO和SLAM介绍）
 
 ### Structure from Motion (SFM)
 
-The first term that we want to explain is "Structure from Motion" (SFM). SFM is more general 
-than Visual Odometry because it only tackles the problem of estimating the pose and not the motion. So the Goal of the 
-SMF is to estimate 6 different degrees of freedom, three for the position and three for the orientation. Also in 
-contrast to VO which works with a sequence of images, SFM is applied to a set of unordered images. An example for SFM 
-can be read about int he paper "Building Rome in a Day" in which the the authors construct a 2D model of romes city 
-center by butting together the pose estimation of millions of photos taken by tourists. Due to the fact that the images 
-for SFM are unordered is becomes clear that for SFM real time applications are barely possible. SFM is more a post 
-processing task.
+传统三维重建，它更注重的是建图。估计的是相机姿态而非运动，输入不要求是连续的序列（OV要求连续序列），只要有不同角度的图像就可以重建。
+一般用于后处理算法，很难用于有实时要求的应用。
 
 ### Visual SLAM (VSLAM)
 
-Another extension the the basic VO is the Visual SLAM (VSLAM) where SLAM stands for "**S**imultaneous **L**ocalization 
-**A**nd **M**apping". Since VO only guarantees local consistency it can happen that all the small error add up which 
-then becomes well visible in closed loop motion when start and endpoint should line up but won't with basic VO. SLAM
-adjusts the model in a way so that it consistently checks if it recognized the surrounding so that if it does it can
-try to close the loop and therefore adjust the previous estimation. In simple words SLAM enables global consistency 
-using loop detection and loop closure.
+SLAM要求解决是同步建图与定位问题，重点是定位。VO虽然能保证局部一致性，但有误差积累问题。SLAM允许后续做全局一致性检查（loop closure）。
+
 
 ![VO relations](./img/chapter_1/sfm_vslam_vo.png)
 
-So we can say VO is part of VSLAM which itself is part of SFM.
+可看作包含关系。
 
-All Visual Odometry algorithms follow the same process model. An image sequence or a unordered image set is used as input.
-Then the algorithm detects features, which are certain points in the image which it can recognize. These points are than
-tracked throught the sequence/ set of images. From the translation on the images of these features the 3D relation 
-between then can be estimated as well as the motion of the camera. In the end the estimations are optimized using local 
-optimisation methods. The the basic workflow of Vo is:
+VO流程大体相近。输入连续图像，然后检测图像中的特征点，并且再序列中匹配跟踪特征点，从特征点在图像中的位移来估计相机的移动，最后使用局部的优化方法优化估计结果。
 
-1. Reading Image Sequence
-2. Feature detection
-3. Feature matching and tracking
-4. Motion estimation
-5. Local optimisation
+基本workflow：
+
+1. 读取连续输入图像
+2. 提取特征
+3. 做特征匹配和跟踪
+4. 运动估计
+5. 做局部优化
 
 ![feature detection](./img/chapter_1/input.png)
 
